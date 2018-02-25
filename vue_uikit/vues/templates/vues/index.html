@@ -1,0 +1,37 @@
+{#{% extends 'vues/base_site.html' %}#}
+
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <title>helloform_Vue</title>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+        <script src="/static/js/vue/vue.js"></script>
+    </head>
+    <body>
+    <div class="hello">
+        <ul>
+            <form @submit.prevent="submit">
+                <input type="text" name="name" v-model="inputtext.name">
+                <input type="password" name="password" v-model="inputtext.password">
+                <input type="submit" value="提交">
+            </form>
+        </ul>
+    </div>
+    <script>
+        var vm = new Vue({
+            el: '.hello',
+            data: {
+
+                inputtext:{}
+            },
+            methods: {
+                submit: function() {
+                    console.log(this.inputtext);
+                }
+            },
+        })
+    </script>
+
+    </body>
+</html>

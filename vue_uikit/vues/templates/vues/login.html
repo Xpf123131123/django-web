@@ -1,0 +1,95 @@
+{% extends 'vues/base_site.html' %}
+
+{% block script %}
+    <script>
+        function validateEmail(email) {
+            var re = /^[a-z0-9\.\-\_]+\@[a-z0-9\-\_]+(\.[a-z0-9\-\_]+){1,4}$/;
+            return re.test(email.toLowerCase());
+        }
+        function validatePassword(password) {
+            if (!password || password.length < 6){
+                return false;
+            }
+            return true;
+        }
+        $(function () {
+            var form = new Vue({
+                el: '#login_form',
+                data: {
+                    username: '',
+{#                    email: '',#}
+                    password: '',
+{#                    password1: ''#}
+                },
+                methods: {
+                    submit: function (event) {
+                        event.preventDefault();
+                        if (!this.name) {
+                            console.log('名字不能为空');
+{#                            return;#}
+                        }
+{#                        if (!validateEmail(this.email)) {#}
+{#                            console.log('请输入正确的Email地址');#}
+{#                            return;#}
+{#                        }#}
+                        if (!validatePassword(this.password)) {
+                            console.log('密码格式不正确');
+{#                            return;#}
+                        }
+{#                        if (this.password !== this.password1) {#}
+{#                            console.log('两次输入密码的不一致');#}
+{#                            return;#}
+{#                        }#}
+
+                        var params = new URLSearchParams();
+{#                        params.append('email', this.email);#}
+                        params.append('username', this.username);
+                        params.append('password', this.password);
+                        axios.defaults.headers.common['X-CSRFToken'] = '{{ csrf_token }}';
+                        axios.post('{{ app_path }}', params).then(function (response) {
+                            console.log(response);
+                            var data = response.data;
+                            if (data.errorCode == 0) {
+                                window.location.href = data.message.next;
+                            } else {
+                                console.log(data.errormsg)
+                            }
+                        }).catch(function (error) {
+                            console.log(error);
+                        })
+                    }
+                }
+            })
+        });
+
+    </script>
+{% endblock %}
+
+{% block content %}
+    <div class="uk-container uk-container-center uk-panel uk-border-rounded" style="background-color: #0BA1D8">
+
+    <form class="uk-form uk-form-stacked" id="login_form" @submit.prevent="submit">
+        <fieldset data-uk-margin>
+            <legend>登陆</legend>
+            <br class="clear">
+            <div class="uk-alert uk-alert-danger uk-hidden"></div>
+        <div class="uk-form-row">
+            <label class="uk-form-label">Username:</label>
+            <input v-model='username' class="uk-width-1-1 uk-form-width-large" type="text" autofocus maxlength="254"/>
+        </div>
+
+        <div class="uk-form-row">
+            <label class="uk-form-label">Password:</label>
+            <input v-model='password' class="uk-width-1-1" type="password"/>
+            <input class="uk-width-1-1" type="hidden" id="next" name="next" value="/admin/" />
+        </div>
+
+        <div class="uk-form-row uk-container uk-container-center">
+            <input class="uk-button uk-button-large" type="submit" value="Login"/>
+        </div>
+
+        </fieldset>
+
+    </form>
+    </div>
+{% endblock %}

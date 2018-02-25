@@ -1,5 +1,5 @@
 from django.shortcuts import render, reverse
-from django.http import Http404, HttpResponse
+from django.http import Http404, HttpResponse, HttpResponseRedirect
 from django.views import generic
 from .models import User
 from .tools.utils import decrypt
@@ -58,10 +58,11 @@ def login(request):
             ip = request.META['REMOTE_ADDR']
 
         print('ip:', ip)
-        response = render(request, 'polls/index.html')
+        # response = render(request, 'polls/index.html')
+        response = HttpResponseRedirect('../')# render(request, 'polls/index.html')
 
         if request.POST['username']:
             response.set_cookie('username', request.POST['username'])
-        return response
+        return HttpResponse('hello')
 
     return Http404
