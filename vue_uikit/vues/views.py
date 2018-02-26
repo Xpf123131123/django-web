@@ -1,9 +1,12 @@
 from django.shortcuts import render, render_to_response
 from django.views import generic
-from django.http import HttpResponseRedirect, HttpResponse
+from django.http import HttpResponseRedirect, HttpResponse, HttpRequest
 from django.views.decorators.cache import never_cache
 from django.views.decorators.http import require_http_methods
-from .models import User
+from django.contrib.auth.models import User
+from django.contrib.auth import authenticate, login
+# from .models import User
+from .tools import errorCode
 import json
 
 
@@ -13,14 +16,20 @@ class IndexView(generic.TemplateView):
     template_name = 'vues/index.html'
 
 
-# @require_http_methods(["GET", "POST"])
-# @never_cache
+class HomeView(generic.DetailView):
+    template_name = ''
+
+    def get_queryset(self):
+        pass
+
+
 class RegisterView(generic.FormView):
     template_name = 'vues/register.html'
 
     def get(self, request, *args, **kwargs):
         return render(request, 'vues/register.html', {
-            'app_path': '/vues/register/'
+            'app_path': '/vues/register/',
+            'next': '../'
         })
 
     def post(self, request, *args, **kwargs):
@@ -33,12 +42,13 @@ class RegisterView(generic.FormView):
 
         try:
             User.objects.get(username=username)
-            resp = {'errorCode': 1002,
+            resp = {'errorCode': errorCode.userHasBeenExits,
                     'errormsg': '用户已存在',
                     'message': {}
                     }
         except User.DoesNotExist:
-            user = User.objects.create(username=username, email=email, password=password)
+            user = User.objects.create_user(username, email, password)
+            user.save()
             if user:
                 resp = {'errorCode': 0,
                         'errormsg': '',
@@ -46,7 +56,7 @@ class RegisterView(generic.FormView):
                             'next': '../'
                         }}
             else:
-                resp = {'errorCode': 1004,
+                resp = {'errorCode': errorCode.serverBusy,
                         'errormsg': '服务器繁忙',
                         'message': {
                             'next': '../'
@@ -55,8 +65,6 @@ class RegisterView(generic.FormView):
         return HttpResponse(json.dumps(resp), content_type="application/json")
 
 
-# @require_http_methods(["GET", "POST"])
-# @never_cache
 class LoginView(generic.FormView):
     template_name = 'vues/login.html'
 
@@ -72,46 +80,41 @@ class LoginView(generic.FormView):
         username = request.POST.get('username')
         password = request.POST.get('password')
 
-        try:
-            user = User.objects.get(username=username)
-            resp = getResp(user.password, password)[0]
-        except User.DoesNotExist:
-            try:
-                user = User.objects.get(email=username)
-                resp = getResp(user.password, password)[0]
-            except User.DoesNotExist:
-                resp = {'errorCode': 1001,
-                        'errormsg': '用户不存在',
+        user = authenticate(username=username, password=password)
+        if user is not None:
+            if user.is_active:
+                login(request, user)
+                # Redirect to a success page.
+                resp = {'errorCode': 0,
+                        'errormsg': '',
+                        'message': {
+                            'next': '../'
+                        }}
+            else:
+                # Return a 'disabled account' error message
+                resp = {'errorCode': errorCode.userOrPasswordError,
+                        'errormsg': '用户名或密码错误',
                         'message': {}
                         }
-
-        if request.META.get('HTTP_X_FORWARDED_FOR'):
-            ip = request.META['HTTP_X_FORWARDED_FOR']
         else:
-            ip = request.META['REMOTE_ADDR']
+            # Return an 'invalid login' error message.
+            resp = {'errorCode': errorCode.userDoesNotExits,
+                    'errormsg': '用户不存在',
+                    'message': {}
+                    }
+        # if request.META.get('HTTP_X_FORWARDED_FOR'):
+        #     ip = request.META['HTTP_X_FORWARDED_FOR']
+        # else:
+        #     ip = request.META['REMOTE_ADDR']
 
         print(resp)
         return HttpResponse(json.dumps(resp), content_type="application/json")
 
 
-def getResp(password_sql, password_req):
-    if password_sql == password_req:
-        print('*************************')
-        print('user login success')
-        print('*************************')
-        resp = {'errorCode': 0,
-                'errormsg': '',
-                'message': {
-                    'next': '../'
-                }}
-        return resp, True
-    else:
-        print('*************************')
-        print('warning: password error')
-        print('*************************')
-
-        resp = {'errorCode': 1003,
-                'errormsg': '用户名或密码错误',
-                'message': {}
-                }
-        return resp, False
+def getResp(message, errorCode, errormsg):
+    resp = {
+        'errorCode': errorCode,
+        'errormsg': errormsg,
+        'message': message
+    }
+    return resp

@@ -17,9 +17,7 @@
                 el: '#login_form',
                 data: {
                     username: '',
-{#                    email: '',#}
-                    password: '',
-{#                    password1: ''#}
+                    password: ''
                 },
                 methods: {
                     submit: function (event) {
@@ -42,7 +40,6 @@
 {#                        }#}
 
                         var params = new URLSearchParams();
-{#                        params.append('email', this.email);#}
                         params.append('username', this.username);
                         params.append('password', this.password);
                         axios.defaults.headers.common['X-CSRFToken'] = '{{ csrf_token }}';
@@ -51,17 +48,20 @@
                             var data = response.data;
                             if (data.errorCode == 0) {
                                 window.location.href = data.message.next;
+
                             } else {
-                                console.log(data.errormsg)
+                                console.log(data.errormsg);
+                                var $msg = $('#error_msg');
+                                $msg.removeClass('uk-hidden').text(data.errormsg).show()
                             }
                         }).catch(function (error) {
                             console.log(error);
                         })
                     }
                 }
-            })
-        });
+            });
 
+        });
     </script>
 {% endblock %}
 
@@ -72,7 +72,7 @@
         <fieldset data-uk-margin>
             <legend>登陆</legend>
             <br class="clear">
-            <div class="uk-alert uk-alert-danger uk-hidden"></div>
+            <div class="uk-alert uk-alert-danger uk-hidden" id="error_msg">{{ error_msg }}</div>
         <div class="uk-form-row">
             <label class="uk-form-label">Username:</label>
             <input v-model='username' class="uk-width-1-1 uk-form-width-large" type="text" autofocus maxlength="254"/>
@@ -81,7 +81,6 @@
         <div class="uk-form-row">
             <label class="uk-form-label">Password:</label>
             <input v-model='password' class="uk-width-1-1" type="password"/>
-            <input class="uk-width-1-1" type="hidden" id="next" name="next" value="/admin/" />
         </div>
 
         <div class="uk-form-row uk-container uk-container-center">

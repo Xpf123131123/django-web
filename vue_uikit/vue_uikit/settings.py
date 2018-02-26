@@ -47,9 +47,10 @@ MIDDLEWARE = [
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
-    'django.middleware.cookies.CookiesMiddleware',
+    'django.middleware.clickjacking.XFrameOptionsMiddleware',
 
-    'vues.middleware.XFrameOptionsMiddleware',
+    'vues.middleware.cookies.CookiesMiddleware',
+
 ]
 
 ROOT_URLCONF = 'vue_uikit.urls'
