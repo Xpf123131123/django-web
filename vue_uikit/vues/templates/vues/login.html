@@ -43,20 +43,16 @@
                         params.append('username', this.username);
                         params.append('password', this.password);
                         axios.defaults.headers.common['X-CSRFToken'] = '{{ csrf_token }}';
-                        axios.post('{{ app_path }}', params).then(function (response) {
-                            console.log(response);
-                            var data = response.data;
-                            if (data.errorCode == 0) {
-                                window.location.href = data.message.next;
-
-                            } else {
-                                console.log(data.errormsg);
-                                var $msg = $('#error_msg');
-                                $msg.removeClass('uk-hidden').text(data.errormsg).show()
+                        http.post('{{ app_path }}', params, function (message, error) {
+                            console.log(message);
+                            if (message && message.next) {
+                                window.location.href = message.next;
+                            }else {
+                                // console.log(data.errormsg);
+                                // var $msg = $('#error_msg');
+                                // $msg.removeClass('uk-hidden').text(data.errormsg).show()
                             }
-                        }).catch(function (error) {
-                            console.log(error);
-                        })
+                        });
                     }
                 }
             });

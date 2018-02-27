@@ -16,11 +16,20 @@ class IndexView(generic.TemplateView):
     template_name = 'vues/index.html'
 
 
-class HomeView(generic.DetailView):
-    template_name = ''
+class HomeView(generic.FormView):
+    template_name = 'vues/home.html'
+    # url = '/vues/'
+    # def get_queryset(self):
+    #     pass
 
-    def get_queryset(self):
-        pass
+    def get(self, request, *args, **kwargs):
+        return render(request, 'vues/home.html')
+
+
+    success_url = '/vues/'
+
+    def post(self, request, *args, **kwargs):
+        return HttpResponseRedirect(redirect_to='/vues/')
 
 
 class RegisterView(generic.FormView):
